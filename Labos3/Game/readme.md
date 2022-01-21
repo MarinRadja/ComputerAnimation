@@ -1,7 +1,7 @@
 Kontrole
-  •	Pacman
-    o	w – idi gore
-    o	a – idi lijevo
-    o	s – idi dolje
-    o	d – idi desno
-  •	p – pauza
+	- Pacman
+		- w - idi gore
+		- a - idi lijevo
+		- s - idi dolje
+		- d - idi desno
+	- p - pauziranje igre
