@@ -1,5 +1,4 @@
 #pragma once
-#include <GL/glut.h>
 #include <stdio.h>
 #include <math.h>
 #include <windows.h>
@@ -11,14 +10,10 @@
 #include <vector>
 #include <iostream>
 
+#include <GL/glut.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_access.hpp>
-
-#define UP 1
-#define DOWN 2
-#define LEFT 3
-#define RIGHT 4
 
 
 using namespace std;
@@ -156,8 +151,6 @@ void myDisplay() {
 
 	drawParticles();
 
-	//cout << "source(" << source.x << ", " << source.y<< ", " << source.z << ")\n";
-	//cout << source.gen << endl;
 	glutSwapBuffers();
 }
 vec3 generateParticleSpeed() {
@@ -175,13 +168,15 @@ void myIdle() {
 	int timeInterval = currentTime - previousTime;
 
 	if (timeInterval > 50) {
+		// if we can, generate more particles
 		if (source.gen > 0) {
 			int n = rand() % source.gen + 1;
 			for (int i = 0; i < n; i++) {
+				// decide on a random speed
 				vec3 speed = generateParticleSpeed();
 
+				// create particle
 				Particle p;
-
 				p.x = source.x;	p.y = source.y;	p.z = source.z;
 				p.colorR = source.colorR;	p.colorB = source.colorB;	p.colorG = source.colorG;
 				p.sX = speed.x;	p.sY = speed.y;	p.sZ = speed.z;
@@ -195,8 +190,8 @@ void myIdle() {
 
 
 		for (int i = 0; i < particles.size(); i++) {
-			// update particle age and delete it if it's too old
 
+			// delete particles if they get too old
 			particles.at(i).age += 1;
 			if (particles.at(i).age > particles.at(i).lifespan) {
 				particles.erase(particles.begin() + i);
@@ -204,6 +199,8 @@ void myIdle() {
 				continue;
 			}
 
+
+			// otherwise, update their position in the world
 			Vertex s(0, 0, 1);
 			Vertex e(0, 0, 0);
 			Vertex os(0, 0, 0);
@@ -232,10 +229,13 @@ void myIdle() {
 			particles.at(i).y += 0.01 * particles.at(i).sY;
 			particles.at(i).z += 0.01 * particles.at(i).sZ;
 
+
+			// also, change their colour as they age
 			particles.at(i).colorR = (particles.at(i).colorR - 0.01 > 0) ? particles.at(i).colorR - 0.01 : 0;
 			particles.at(i).colorG = (particles.at(i).colorG - 0.01 > 0) ? particles.at(i).colorG - 0.01 : 0;
 		}
 
+		// update the value so we can generate particles in a pulsing motion
 		source.gen += 1;
 		if (source.gen == 15)
 			source.gen = -45;
@@ -247,6 +247,7 @@ void myIdle() {
 
 void drawP(Particle p) {
 
+	// draw particle textures
 	glColor3f(p.colorR, p.colorG, p.colorB);
 	glTranslatef(p.x, p.y, p.z);
 	glRotatef(p.angle, p.osX, p.osY, p.osZ);
@@ -260,8 +261,6 @@ void drawP(Particle p) {
 	glEnd();
 	glRotatef(-p.angle, p.osX, p.osY, p.osZ);
 	glTranslatef(-p.x, -p.y, -p.z);
-	//cout << "Particle position:\n" << "\tx = " << p.x << "\ty = " << p.y << "\tz = " << p.z << "\n\n";
-	//cout << p.size << "\n";
 }
 
 void drawParticles() {
