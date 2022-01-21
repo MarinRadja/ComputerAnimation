@@ -1,7 +1,4 @@
 #pragma once
-
-//  #include <GL/Gl.h>
-//  #include <GL/Glu.h>    nije potrebno ako se koristi glut
 #include <GL/glut.h>
 #include <stdio.h>
 #include <math.h>

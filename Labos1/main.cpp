@@ -1,5 +1,4 @@
-﻿
-
+﻿#pragma once
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -15,6 +14,7 @@
 using namespace std;
 using namespace glm;
 
+
 int brojVrhova = 0, brojTrokuta = 0;
 int brojB = 0, brojSegmenata = 0;
 
@@ -23,7 +23,6 @@ float previousTime = 0.f;
 float animationSpeed = 200;
 int iVrh = 0;
 float tSeg = 0.f;
-
 
 
 class Vrh {
@@ -92,8 +91,11 @@ void myIdle();
 void drawTrajectory();
 
 int main(int argc, char** argv) {
-	loadObject("E:\\Programming\\_Repos\\Visual Studio Repos\\Racunalna animacija\\Labos1\\objs\\747.obj");
-	loadBSpline("E:\\Programming\\_Repos\\Visual Studio Repos\\Racunalna animacija\\Labos1\\objs\\bspline.txt");
+	// load object
+	loadObject(argv[1]);
+
+	// load spline
+	loadBSpline(argv[2]);
 
 	calculatePath();
 
@@ -300,9 +302,7 @@ void myDisplay() {
 	vec3 osStartV = vec3(osStart.x, osStart.y, osStart.z);
 
 
-	// ################################
 	// tangenta
-	// ################################
 	glColor3f(.0, 1., .0);
 	Vrh tan = calcDP(tSeg, iVrh);
 	vec3 tanV = normalize(vec3(tan.x, tan.y, tan.z));
@@ -313,9 +313,7 @@ void myDisplay() {
 	glVertex3f(tanEndVec.x / 25.f, tanEndVec.y / 25.f, tanEndVec.z / 25.f);
 	glEnd();
 
-	// ################################
 	// normala
-	// ################################
 	glColor3f(.0, .0, 1.0);
 	Vrh ddp = calcDDP(tSeg, iVrh);
 	vec3 normV = normalize(cross(tanV, vec3(ddp.x, ddp.y, ddp.z)));
@@ -326,9 +324,7 @@ void myDisplay() {
 	glVertex3f(normEndVec.x / 25.f, normEndVec.y / 25.f, normEndVec.z / 25.f);
 	glEnd();
 
-	// ################################
 	// binormala
-	// ################################
 	glColor3f(1.0, .0, .0);
 	vec3 biNormV = normalize(cross(tanV, normV));
 	vec3 biNormStartVec = vec3(osStart.x, osStart.y, osStart.z);
@@ -343,7 +339,7 @@ void myDisplay() {
 
 	vec3 center = vec3(sredisteTrokuta.x, sredisteTrokuta.y, sredisteTrokuta.z);
 
-	// rotacija sa dcm
+	// rotation with dcm
 	if (true) {
 		glPushMatrix();
 		glBegin(GL_TRIANGLES);
@@ -420,7 +416,7 @@ void myDisplay() {
 void myIdle() {
 	currentTime = glutGet(GLUT_ELAPSED_TIME);
 	int timeInterval = currentTime - previousTime;
-	//printf("%d\n", timeInterval);
+
 	if (timeInterval > 40) {
 		myDisplay();
 		previousTime = currentTime;
@@ -428,8 +424,6 @@ void myIdle() {
 }
 
 
-
-// Helper fje
 
 bool startsWith(string text, string prefix) {
 	if (text.rfind(prefix, 0) == 0)
