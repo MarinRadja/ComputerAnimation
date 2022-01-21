@@ -15,16 +15,25 @@ Game::Game(GameMap* map, Pacman* pacman, vector<Ghost>* ghosts) {
 
 void Game::nextStep(int timeInterval)
 {
-	(*pacman).updatePosition();
+	// update pacman position
+	pacman->updatePosition();
+
+	// update ghosts position
 	for (int i = 0; i < ghosts->size(); i++) {
 		ghosts->at(i).updatePosition();
 	}
 
-	if ((*pacman).powerUp == true) {
-		(*pacman).powerUpDuration -= 1.f * timeInterval / 1000;
-		if ((*pacman).powerUpDuration <= 0) {
-			(*pacman).powerUp = false;
-			(*pacman).currentSpeed = (*pacman).originalSpeed;
+	// if pacman has a powerup, we need to modify a few things
+	if (pacman->powerUp == true) {
+		// calculate how much duration of the powerup is left
+		pacman->powerUpDuration -= 1.f * timeInterval / 1000;
+
+		// then if pacman ran out of duration
+		// change its speed to normal
+		// and change ghosts' colour to normal
+		if (pacman->powerUpDuration <= 0) {
+			pacman->powerUp = false;
+			pacman->currentSpeed = pacman->originalSpeed;
 			for (int i = 0; i < ghosts->size(); i++) {
 				ghosts->at(i).color = ghosts->at(i).originalColor;
 			}
@@ -34,9 +43,10 @@ void Game::nextStep(int timeInterval)
 
 void Game::checkCollision() {
 	// pacmanX and pacmanY are coordinates of pacman's left bottom corner
-	float pacmanX = (*pacman).position.x, pacmanY = (*pacman).position.y;
+	float pacmanX = pacman->position.x, pacmanY = pacman->position.y;
 
 	// check saved directions when pacman is in the mid of a tile
+	// this is used check and automatically change direction for saved input
 	if (pacman->direction != 0) {
 		if (pacman->direction == UP && map->map[(int)round(pacmanX)][(int)round(pacmanY) + 1] != 1) {
 			pacman->nextDirection = UP;
@@ -68,7 +78,8 @@ void Game::checkCollision() {
 	bool collision = false;
 	for (int i = leftTile; i <= rightTile; i++) {
 		for (int j = topTile; j <= bottomTile; j++) {
-			int tile = (*map).map[i][j];
+			int tile = map->map[i][j];
+
 			// collision with wall
 			if (tile == 1) {
 				xOverlaps = (pX - 0.5 < i + 1) && ((pX + 0.5) > i);
@@ -76,8 +87,9 @@ void Game::checkCollision() {
 
 				collision = xOverlaps && yOverlaps;
 				if (collision)
-					(*pacman).position = vec2(round(pacmanX), round(pacmanY));
+					pacman->position = vec2(round(pacmanX), round(pacmanY));
 			}
+
 			// collision with coins
 			else if (tile == 2) {
 				xOverlaps = (pX - 0.5 < i + 0.2) && ((pX + 0.5) > i + 0.8);
@@ -85,16 +97,17 @@ void Game::checkCollision() {
 
 				collision = xOverlaps && yOverlaps;
 				if (collision) {
-					(*map).map[i][j] = 0;
+					map->map[i][j] = 0;
 					this->coins--;
 					//cout << coins << endl;
 					if (this->coins == 0) {
 						this->winConTriggered = true;
-						(*map).map[0][17] = 0;
-						(*map).map[34][17] = 0;
+						map->map[0][17] = 0;
+						map->map[34][17] = 0;
 					}
 				}
 			}
+
 			// collision with powerups 
 			else if (tile == 3) {
 				xOverlaps = (pX - 0.5 < i + 0.2) && ((pX + 0.5) > i + 0.8);
@@ -102,10 +115,10 @@ void Game::checkCollision() {
 
 				collision = xOverlaps && yOverlaps;
 				if (collision) {
-					(*map).map[i][j] = 0;
-					(*pacman).powerUp = true;
-					(*pacman).powerUpDuration = 10;
-					(*pacman).currentSpeed = 0.15;
+					map->map[i][j] = 0;
+					pacman->powerUp = true;
+					pacman->powerUpDuration = 10;
+					pacman->currentSpeed = 0.15;
 					// set ghosts to be frightened
 					for (int l = 0; l < ghosts->size(); l++) {
 						ghosts->at(l).color = vec3(1, 1, 1);
@@ -116,7 +129,7 @@ void Game::checkCollision() {
 	}
 
 
-	// pacman with exit
+	// if pacman collected all coins, we need to start checking if he managed to escape
 	if (winConTriggered) {
 		// left exit
 		xOverlaps = (pX - 0.5 < 0 + 1) && ((pX + 0.5) > 0);
@@ -147,11 +160,11 @@ void Game::checkCollision() {
 		}
 	}
 
-	// ghosts with walls and pacman
+	// ghosts collision with walls and pacman
 	for (int k = 0; k < ghosts->size(); k++) {
 		float ghostX = ghosts->at(k).position.x, ghostY = ghosts->at(k).position.y;
 
-		// so for calculations, we adjust the coordinates to the middle of the pacman
+		// so for calculations, we adjust the coordinates to the middle of the ghost
 		float gX = ghostX + 0.5, gY = ghostY + 0.5;
 
 		// we find the local neighbourhood to check for collisions
@@ -166,7 +179,7 @@ void Game::checkCollision() {
 
 		collision = xOverlaps && yOverlaps;
 		if (collision) {
-			if ((*pacman).powerUp == true) {
+			if (pacman->powerUp == true) {
 				ghosts->at(k).reset();
 			}
 			else {
@@ -185,12 +198,11 @@ void Game::checkCollision() {
 		// collision ghosts with walls
 		xOverlaps = false, yOverlaps = false;
 		collision = false;
+		// check local neighbourhood
 		for (int i = leftTile; i <= rightTile; i++) {
 			for (int j = topTile; j <= bottomTile; j++) {
-				int tile = (*map).map[i][j];
-				// collision with wall
-				// need to change collision with wall to be collision with intersections 
-				// --- create a list of intersections and check collision with that
+				int tile = map->map[i][j];
+
 				if (tile == 1) {
 					xOverlaps = (gX - 0.5 < i + 1) && ((gX + 0.5) > i);
 					yOverlaps = (gY - 0.5 < j + 1) && ((gY + 0.5) > j);
@@ -209,21 +221,24 @@ void Game::checkCollision() {
 		// work in progress
 		// collision ghosts with decision tiles
 		// we don't want to do this if it already changed directions because of wall collision
+		/* 
 		if (!collision) {
 			pair<float, float> ghostPos(ghostX + 1, ghostY);
 			if (isMidTile(ghostPos)) {
 				pair<int, int> ghostPosInt = make_pair(ghostPos.first, ghostPos.second);
-				if (find((*map).decisionTiles.begin(), (*map).decisionTiles.end(), ghostPosInt) != (*map).decisionTiles.end()) {
+				if (find(map->decisionTiles.begin(), map->decisionTiles.end(), ghostPosInt) != map->decisionTiles.end()) {
 					ghosts->at(k).decideDirection();
 				}
 			}
 		}
+		*/
 		
 	}
 
 }
 
 bool Game::isMidTile(pair<float, float> tile) {
+	// check if location is in the middle of a tile
 	if (fabsf(roundf(tile.first) - tile.first) <= 0.00001f && fabsf(roundf(tile.second) - tile.second) <= 0.00001f)
 		return true;
 	return false;
@@ -242,11 +257,11 @@ void Game::wonGame()
 
 int Game::countCoins()
 {
+	// count number of coins in current map
 	int count = 0;
-	for (int i = 0; i < (*map).mapWidth; i++)
-		for (int j = 0; j < (*map).mapHeight; j++)
-			if ((*map).map[i][j] == 2)
+	for (int i = 0; i < map->mapWidth; i++)
+		for (int j = 0; j < map->mapHeight; j++)
+			if (map->map[i][j] == 2)
 				count++;
-	//cout << count << endl << endl << endl;
 	return count;
 }

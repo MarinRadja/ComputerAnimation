@@ -13,6 +13,9 @@ Ghost::Ghost(GameMap* map, vec2 position, vec3 color)
 
 void Ghost::decideDirection()
 {
+	// checks which direction doesn't have a wall
+	// and then picks a random direction from those
+	// and sets it as a new direction
 	vector<int> possibleDirections;
 
 	int gX = round(position.x), gY = round(position.y);
@@ -21,12 +24,12 @@ void Ghost::decideDirection()
 	if ((*map).map[gX][gY - 1] != 1) possibleDirections.push_back(DOWN);
 	if ((*map).map[gX][gY + 1] != 1) possibleDirections.push_back(UP);
 
-	//cout << possibleDirections.size() << endl;
 	direction = possibleDirections.at(rand() % possibleDirections.size());
 }
 
 void Ghost::updatePosition()
 {
+	// updating position depending on ghosts
 	if (direction== UP) position.y += currentSpeed;
 	if (direction == DOWN) position.y -= currentSpeed;
 

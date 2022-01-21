@@ -16,6 +16,7 @@ Pacman::Pacman() {
 };
 
 void Pacman::updatePosition() {
+	// updating position based on speed
 	if (nextDirection == UP) position.y += currentSpeed;
 	if (nextDirection == DOWN) position.y -= currentSpeed;
 

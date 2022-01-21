@@ -2,8 +2,6 @@
 #include <windows.h>             //bit ce ukljuceno ako se koriste windows
 #endif
 
-//  #include <GL/Gl.h>
-//  #include <GL/Glu.h>    nije potrebno ako se koristi glut
 #include <GL/glut.h>
 #include <stdio.h>
 #include <math.h>
@@ -36,13 +34,13 @@ using namespace glm;
 GLuint window;
 GLuint width = 500, height = 500;
 
-
+// OpenGL functions definition
 void myDisplay();
 void myIdle();
 void myKeyboard(unsigned char theKey, int mouseX, int mouseY);
 void myInit();
 
-
+// function definitions
 void drawMap();
 void drawPacman();
 void drawGhosts();
@@ -52,6 +50,7 @@ void displayCongratz();
 void displayPowerUp();
 void diplayPauseMenu();
 
+// global variables
 bool paused = true;
 bool gameOver = false;
 
@@ -68,17 +67,14 @@ bool pacmanMouthOpen = false;
 int pacmanAnimationTimer= 50;
 
 int main(int argc, char** argv) {
+	// random will be used to decide new ghost direction
 	srand(time(NULL));
-
-	
 
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glutInitWindowSize(width, height);
 	glutInitWindowPosition(100, 100);
 	glutInit(&argc, argv);
-
-	//gluPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.5f, 3000.0f);
 
 	window = glutCreateWindow("Pacman");
 
@@ -94,6 +90,7 @@ int main(int argc, char** argv) {
 }
 
 void myInit() {
+	// initializing glut settings
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -101,18 +98,13 @@ void myInit() {
 	glPointSize(16.8);
 
 
+	// setting up map and counting coins
 	gameMap.setStartMap();
-	//gameMap.displayMap();
 	game.coins = game.countCoins();
 
-	//for (int i = 0; i < gameMap.decisionTiles.size(); i++)
-		//cout << gameMap.decisionTiles.at(i).first << ", " << gameMap.decisionTiles.at(i).second << endl;
-
-	// create ghosts
+	// creating ghosts
 	Ghost g1(&gameMap, vec2(16, 21), vec3(1, 0, 0));
 	g1.decideDirection();
-	//g.direction = 0;
-	//cout << "ghost dir = " << g.direction << endl << endl;
 	ghosts.push_back(g1);
 
 	Ghost g2(&gameMap, vec2(15, 21), vec3(1, 0, 1));
@@ -128,13 +120,14 @@ void myInit() {
 	ghosts.push_back(g4);
 }
 
+// simple display function which class
+// separate functions to draw different stuff
 void myDisplay() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	drawMap();
 	drawPacman();
 	drawGhosts();
-	// draw gui
 	drawGUI();
 
 
@@ -144,6 +137,7 @@ void myDisplay() {
 
 
 void drawPacman() {
+	// for pacman we always first draw a yellow square
 	glBegin(GL_POLYGON);
 	glColor3f(1.0, 1.0, 0.0);
 	glVertex2f(pacman.position.x * 10, pacman.position.y * 10);
@@ -152,6 +146,10 @@ void drawPacman() {
 	glVertex2f(pacman.position.x * 10, pacman.position.y * 10 + 10);
 	glEnd();
 
+	// then we check if the mouth is open
+	// if it is, we start drawing from the middle of the square
+	// and then check which side the pacman is going
+	// and point the mouth in that direction
 	if (pacmanMouthOpen) {
 		glBegin(GL_POLYGON);
 		glColor3f(0.0, 0.0, 0.0);
@@ -173,11 +171,11 @@ void drawPacman() {
 			glVertex2f(pacman.position.x * 10, pacman.position.y * 10);
 		}
 		glEnd();
-
 	}
 }
 
 void drawGhosts() {
+	// ghosts are draw as coloured squares
 	for (int i = 0; i < ghosts.size(); i++) {
 		glBegin(GL_POLYGON);
 		glColor3f(ghosts.at(i).color.x, ghosts.at(i).color.y, ghosts.at(i).color.z);
@@ -189,8 +187,11 @@ void drawGhosts() {
 	}
 }
 
-
+// function responsible for drawing all GUI
+// check variables to determine which state the game is in
+// and displays appropriate messages
 void drawGUI() {
+	// display number of coins left to pick up
 	glColor3f(1, 0, 0);
 	glRasterPos2f(38, 26);
 	string coins = "Coins left: " + to_string(game.countCoins());
@@ -198,7 +199,7 @@ void drawGUI() {
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, coins[i]);
 	}
 
-
+	// display number of lives remaining
 	glRasterPos2f(238, 26);
 	string life = "Lives left: " + to_string(pacman.life);
 	for (int i = 0; i < life.length(); i++) {
@@ -219,6 +220,7 @@ void drawGUI() {
 	}
 }
 
+// display pause message in the middle of the screen
 void diplayPauseMenu() {
 	glRasterPos2f(122, 115);
 	string gameOver = "Press P to play!";
@@ -226,6 +228,8 @@ void diplayPauseMenu() {
 		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, gameOver[i]);
 	}
 }
+
+// display game over message in the middle of the screen
 void displayGameOver() {
 	glRasterPos2f(125, 115);
 	string gameOver = "GAME OVER";
@@ -233,6 +237,8 @@ void displayGameOver() {
 		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, gameOver[i]);
 	}
 }
+
+// display win message in the middle of the screen
 void displayCongratz() {
 	glRasterPos2f(138, 115);
 	string gameWon = "YOU WIN";
@@ -240,6 +246,8 @@ void displayCongratz() {
 		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, gameWon[i]);
 	}
 }
+
+// display power up remaining time message in the middle of the screen
 void displayPowerUp() {
 	glRasterPos2f(138, 115);
 
@@ -252,6 +260,11 @@ void displayPowerUp() {
 	}
 }
 
+// map is a tile grid consisting of 0s, 1s, 2s and 3s
+// 0 = nothing is there
+// 1 = wall
+// 2 = coins
+// 3 = powerups
 void drawMap() {
 	// draw walls
 	for (int i = 0; i < gameMap.mapWidth; i++) {
@@ -303,23 +316,29 @@ void myIdle() {
 	// update locations
 	// check for collisions
 
-	
 	if (!paused) {
 		currentTime = glutGet(GLUT_ELAPSED_TIME);
 		int timeInterval = currentTime - previousTime;
 
-		//printf("%d\n", timeInterval);
 		if (timeInterval > animationSpeed) {
 			pacmanAnimationTimer--;
+			// changes pacman mouth from open to close or vice versa every 10 ticks
 			if (pacmanAnimationTimer <= 0) {
 				pacmanAnimationTimer = 10;
 				pacmanMouthOpen = !pacmanMouthOpen;
 			}
+
+			// update locations
 			game.nextStep(timeInterval);
+
+			// check for collisions
 			game.checkCollision();
 			
+			// pause the game if user pressed p
 			if (game.paused == true)
 				paused = true;
+
+			// display everything
 			myDisplay();
 			previousTime = currentTime;
 		}
@@ -333,7 +352,7 @@ void myIdle() {
 }
 
 void myKeyboard(unsigned char theKey, int mouseX, int mouseY) {
-	// ge tmovement keys
+	// get movement keys
 	// check if pausing game
 	if (theKey == 'p') {
 		paused = !paused;
@@ -344,6 +363,9 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY) {
 	}
 
 
+	// checks if the direction of the pressed movement key is free to move into
+	// if it is, we immediately change direction
+	// if it isn't, we save the direction and then change it automatically later
 	int pX = round(pacman.position.x);
 	int pY = round(pacman.position.y);
 	if (theKey == 'w')
